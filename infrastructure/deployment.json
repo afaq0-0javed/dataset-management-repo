@@ -140,18 +140,6 @@
         "description": "OpenAI Max Tokens"
       }
     },
-    "FormRecognizerEndpoint": {
-      "type": "string",
-      "metadata": {
-        "description": "Form Recognizer Endpoint"
-      }
-    },
-    "FormRecognizerKey": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Form Recognizer Key"
-      }
-    },
     "TranslateEndpoint": {
       "type": "string",
       "metadata": {
@@ -242,7 +230,6 @@
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccountName'))]"
       ],
       "properties": {
-
         "protocolSettings": {
           "smb": {}
         },
@@ -344,11 +331,11 @@
             {
               "name": "OPENAI_DEPLOYMENT_TYPE",
               "value": "[parameters('OpenAIDeploymentType')]"
-            },            
+            },
             {
               "name": "OPENAI_EMBEDDINGS_ENGINE_DOC",
               "value": "[parameters('OpenAIEmbeddingsEngineDoc')]"
-            },           
+            },
             {
               "name": "OPENAI_EMBEDDINGS_ENGINE_QUERY",
               "value": "[parameters('OpenAIEmbeddingsEngineQuery')]"
@@ -382,14 +369,6 @@
               "value": "[variables('BlobContainerName')]"
             },
             {
-              "name": "FORM_RECOGNIZER_ENDPOINT",
-              "value": "[parameters('FormRecognizerEndpoint')]"
-            },
-            {
-              "name": "FORM_RECOGNIZER_KEY",
-              "value": "[parameters('FormRecognizerKey')]"
-            },
-            {
               "name": "REDIS_ADDRESS",
               "value": "[concat(parameters('DNSNameLabel'),'.' , resourceGroup().location ,'.azurecontainer.io')]"
             },
@@ -415,9 +394,7 @@
             }
           ],
           "cors": {
-            "allowedOrigins": [
-              "https://portal.azure.com"
-            ]
+            "allowedOrigins": ["https://portal.azure.com"]
           },
           "use32BitWorkerProcess": false,
           "linuxFxVersion": "DOCKER|fruocco/oai-batch:latest",
@@ -479,8 +456,7 @@
           ],
           "dnsNameLabel": "[parameters('DNSNameLabel')]"
         },
-        "initContainers": [
-        ],
+        "initContainers": [],
         "volumes": [
           {
             "name": "[variables('FileShareName')]",
@@ -530,8 +506,6 @@
         "BLOB_ACCOUNT_NAME": "[parameters('StorageAccountName')]",
         "BLOB_ACCOUNT_KEY": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccountName')), '2015-05-01-preview').key1]",
         "BLOB_CONTAINER_NAME": "[variables('BlobContainerName')]",
-        "FORM_RECOGNIZER_ENDPOINT": "[parameters('FormRecognizerEndpoint')]",
-        "FORM_RECOGNIZER_KEY": "[parameters('FormRecognizerKey')]",
         "TRANSLATE_ENDPOINT": "[parameters('TranslateEndpoint')]",
         "TRANSLATE_KEY": "[parameters('TranslateKey')]",
         "TRANSLATE_REGION": "[parameters('TranslateRegion')]",
