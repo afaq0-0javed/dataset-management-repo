@@ -37,6 +37,9 @@ class AzureFormRecognizerClient:
                 for page_num in range(pdf_reader.getNumPages()):
                     page = pdf_reader.getPage(page_num)
                     text = page.extractText()
+                    if len(results) < page_num + 1:
+                        results.append('')
+                        
                     results[page_num] = text
 
             else:
@@ -44,8 +47,7 @@ class AzureFormRecognizerClient:
 
         except Exception as e:
             print(f"An error occurred: {str(e)}")
-            results
-
+            
         return results
 
         # document_analysis_client = DocumentAnalysisClient(
