@@ -150,6 +150,8 @@ class LLMHelper:
     def convert_file_and_add_embeddings(self, source_url, filename, enable_translation=False):
         # Extract the text from the file
         text = self.pdf_parser.analyze_read(source_url)
+
+        print('Converted Results --->', text)
         # Translate if requested
         converted_text = list(map(lambda x: self.translator.translate(x), text)) if self.enable_translation else text
 
