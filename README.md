@@ -45,7 +45,7 @@ You have multiple options to run the code:
 
 ## Deploy on Azure (WebApp + Batch Processing) with Azure Cognitive Search
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2Fafaq0-0javed%2Fdataset-management-repo%2Fraw%2FOCR-Integrated%2Finfrastructure%2Fdeployment_ACS.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fafaq0-0javed%2Fdataset-management-repo%2FOCR-Integrated%2Finfrastructure%2Fdeployment_ACS.json)
 Click on the Deploy to Azure button and configure your settings in the Azure Portal as described in the [Environment variables](#environment-variables) section.
 
 ![Architecture](docs/architecture_acs.png)
