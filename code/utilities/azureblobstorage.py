@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, generate_blob_sas, generate_container_sas, ContentSettings
 from dotenv import load_dotenv
+import streamlit as st
 
 class AzureBlobStorageClient:
     def __init__(self, account_name: str = None, account_key: str = None, container_name: str = None):
@@ -41,17 +42,17 @@ class AzureBlobStorageClient:
                     "converted": blob.metadata.get('converted', 'false') == 'true' if blob.metadata else False,
                     "embeddings_added": blob.metadata.get('embeddings_added', 'false') == 'true' if blob.metadata else False,
                     "fullpath": f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob.name}?{sas}",
-                    "converted_filename": blob.metadata.get('converted_filename', '') if blob.metadata else '',
-                    "converted_path": ""
+                    "converted_filename": f"{blob.metadata.get('converted_filename', '').split('/')[1]}",
+                    # "download_txt": st.download_button(label='.txt', file_name=f"{blob.metadata.get('converted_filename', '').split('/')[1]}", data=f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob.metadata.get('converted_filename', '')}"),
                     })
             else:
                 converted_files[blob.name] = f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob.name}?{sas}"
 
-        for file in files:
-            converted_filename = file.pop('converted_filename', '')
-            if converted_filename in converted_files:
-                file['converted'] = True
-                file['converted_path'] = converted_files[converted_filename]
+        # for file in files:
+        #     converted_filename = file.pop('converted_filename', '')
+        #     if converted_filename in converted_files:
+        #         file['converted'] = True
+        #         file['converted_path'] = converted_files[converted_filename]
         
         return files
 

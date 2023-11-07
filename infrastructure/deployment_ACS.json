@@ -79,13 +79,6 @@
         "description": "Name of Application Insights"
       }
     },
-    "FormRecognizerName": {
-      "type": "string",
-      "defaultValue": "[concat(parameters('ResourcePrefix'), '-formrecog')]",
-      "metadata": {
-        "description": "Azure Form Recognizer Name"
-      }
-    },
     "TranslatorName": {
       "type": "string",
       "defaultValue": "[concat(parameters('ResourcePrefix'), '-translator')]",
@@ -157,27 +150,6 @@
       "properties": {
         "replicaCount": 1,
         "partitionCount": 1
-      }
-    },
-    {
-      "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2022-12-01",
-      "name": "[parameters('FormRecognizerName')]",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "S0"
-      },
-      "kind": "FormRecognizer",
-      "identity": {
-        "type": "None"
-      },
-      "properties": {
-        "networkAcls": {
-          "defaultAction": "Allow",
-          "virtualNetworkRules": [],
-          "ipRules": []
-        },
-        "publicNetworkAccess": "Enabled"
       }
     },
     {
@@ -370,14 +342,6 @@
               "value": "[variables('BlobContainerName')]"
             },
             {
-              "name": "FORM_RECOGNIZER_ENDPOINT",
-              "value": "[concat('https://',resourceGroup().location,'.api.cognitive.microsoft.com/')]"
-            },
-            {
-              "name": "FORM_RECOGNIZER_KEY",
-              "value": "[listKeys(concat('Microsoft.CognitiveServices/accounts/', parameters('FormRecognizerName')), '2023-05-01').key1]"
-            },
-            {
               "name": "VECTOR_STORE_TYPE",
               "value": "AzureSearch"
             },
@@ -456,8 +420,6 @@
         "BLOB_ACCOUNT_NAME": "[parameters('StorageAccountName')]",
         "BLOB_ACCOUNT_KEY": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccountName')), '2015-05-01-preview').key1]",
         "BLOB_CONTAINER_NAME": "[variables('BlobContainerName')]",
-        "FORM_RECOGNIZER_ENDPOINT": "[concat('https://',resourceGroup().location,'.api.cognitive.microsoft.com/')]",
-        "FORM_RECOGNIZER_KEY": "[listKeys(concat('Microsoft.CognitiveServices/accounts/', parameters('FormRecognizerName')), '2023-05-01').key1]",
         "TRANSLATE_ENDPOINT": "https://api.cognitive.microsofttranslator.com/",
         "TRANSLATE_KEY": "[listKeys(concat('Microsoft.CognitiveServices/accounts/', parameters('TranslatorName')), '2023-05-01').key1]",
         "TRANSLATE_REGION": "[resourceGroup().location]",

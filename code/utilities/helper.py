@@ -124,6 +124,7 @@ class LLMHelper:
             
             # Remove half non-ascii character from start/end of doc content (langchain TokenTextSplitter may split a non-ascii character in half)
             pattern = re.compile(r'[\x00-\x09\x0b\x0c\x0e-\x1f\x7f\u0080-\u00a0\u2000-\u3000\ufff0-\uffff]')  # do not remove \x0a (\n) nor \x0d (\r)
+
             for(doc) in docs:
                 doc.page_content = re.sub(pattern, '', doc.page_content)
                 if doc.page_content == '':
@@ -151,7 +152,6 @@ class LLMHelper:
         # Extract the text from the file
         text = self.pdf_parser.analyze_read(source_url)
 
-        print('Converted Results --->', text)
         # Translate if requested
         converted_text = list(map(lambda x: self.translator.translate(x), text)) if self.enable_translation else text
 
@@ -160,8 +160,8 @@ class LLMHelper:
         converted_text = re.sub(pattern, '', "\n".join(converted_text))
 
         # Upload the text to Azure Blob Storage
-        converted_filename = f"converted/{filename}.txt"
-        source_url = self.blob_client.upload_file(converted_text, f"converted/{filename}.txt", content_type='text/plain; charset=utf-8')
+        converted_filename = f"converted/{os.path.splitext(filename)[0]}.txt"
+        source_url = self.blob_client.upload_file(converted_text, f"converted/{os.path.splitext(filename)[0]}.txt", content_type='text/plain; charset=utf-8')
 
         print(f"Converted file uploaded to {source_url} with filename {filename}")
         # Update the metadata to indicate that the file has been converted

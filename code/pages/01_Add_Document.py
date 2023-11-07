@@ -70,10 +70,12 @@ try:
             # To read file as bytes:
             bytes_data = uploaded_file.getvalue()
 
-            if st.session_state.get('filename', '') != uploaded_file.name:
-                upload_file(bytes_data, uploaded_file.name)
+            filename = uploaded_file.name.replace(' ', '_')
+
+            if st.session_state.get('filename', '') != filename:
+                upload_file(bytes_data, filename)
                 converted_filename = ''
-                if uploaded_file.name.endswith('.txt'):
+                if filename.endswith('.txt'):
                     # Add the text to the embeddings
                     llm_helper.add_embeddings_lc(st.session_state['file_url'])
 
@@ -81,8 +83,8 @@ try:
                     # Get OCR with Layout API and then add embeddigns
                     converted_filename = llm_helper.convert_file_and_add_embeddings(st.session_state['file_url'], st.session_state['filename'], st.session_state['translate'])
                 
-                llm_helper.blob_client.upsert_blob_metadata(uploaded_file.name, {'converted': 'true', 'embeddings_added': 'true', 'converted_filename': parse.quote(converted_filename)})
-                st.success(f"File {uploaded_file.name} embeddings added to the knowledge base.")
+                llm_helper.blob_client.upsert_blob_metadata(filename, {'converted': 'true', 'embeddings_added': 'true', 'converted_filename': parse.quote(converted_filename)})
+                st.success(f"File {filename} embeddings added to the knowledge base.")
             
             # pdf_display = f'<iframe src="{st.session_state["file_url"]}" width="700" height="1000" type="application/pdf"></iframe>'
 

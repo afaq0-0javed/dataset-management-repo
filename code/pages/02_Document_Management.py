@@ -4,6 +4,7 @@ import traceback
 from utilities.helper import LLMHelper
 import streamlit.components.v1 as components
 from urllib import parse
+import requests
 
 def delete_embeddings_of_file(file_to_delete):
     # Query RediSearch to get all the embeddings - lazy loading
@@ -43,7 +44,7 @@ def delete_file_and_embeddings(filename=''):
 
         # delete converted file
         if file_dict['converted']:
-            converted_file = 'converted/' + file_dict['filename'] + '.txt'
+            converted_file = 'converted/' + os.path.splitext(source_file)[0] + '.txt'
             try:
                 llm_helper.blob_client.delete_file(converted_file)
             except Exception as e:
@@ -61,6 +62,21 @@ def delete_all_files_and_embeddings():
     files_list = st.session_state['data_files']
     for filename_dict in files_list:
         delete_file_and_embeddings(filename_dict['filename'])
+
+def handle_embeddings():
+
+    filename = st.session_state['file_and_embeddings_to_drop']
+
+    filename = os.path.splitext(filename)[0] + '.txt'
+
+    response = requests.get(f"https://formlokiml-search.search.windows.net/indexes/embeddings/docs?api-version=2023-07-01-Preview&search={filename}")
+    
+    if response.status_code == 200:
+        st.session_state['json_data'] = response.content
+    else:
+       st.session_state['json_data'] = 'UnAuthorized'
+
+    st.write(f"{st.session_state['json_data']}")
 
 try:
     # Set page layout to wide screen and menu item
@@ -89,24 +105,42 @@ try:
     st.session_state['data_files'] = llm_helper.blob_client.get_all_files()
     st.session_state['data_files_embeddings'] = llm_helper.get_all_documents(k=1000)
 
+    account_name : str = os.getenv('BLOB_ACCOUNT_NAME')
+    container_name : str = os.getenv('BLOB_CONTAINER_NAME')
+
     if len(st.session_state['data_files']) == 0:
         st.warning("No files found. Go to the 'Add Document' tab to insert your docs.")
 
     else:
-        st.dataframe(st.session_state['data_files'], use_container_width=True)
+        st.dataframe(st.session_state['data_files'])
 
         st.text("")
         st.text("")
         st.text("")
 
         filenames_list = [d['filename'] for d in st.session_state['data_files']]
-        st.selectbox("Select filename to delete", filenames_list, key="file_and_embeddings_to_drop")
+        st.selectbox("Select File", filenames_list, key="file_and_embeddings_to_drop")
+
+        filename = st.session_state['file_and_embeddings_to_drop']
+
+        if filename != '' and len(st.session_state['data_files']) > 0:
+            file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
+
+            download_filename = file_dict["converted_filename"] + ".txt"
+
+            response = requests.get(f"https://{account_name}.blob.core.windows.net/{container_name}/converted/{file_dict['converted_filename']}")
+
+            if response.status_code == 200:
+                st.text("")
+                st.download_button(label='Download Text File', file_name=f"{file_dict['converted_filename']}", data=response.content)
+        
+        st.text("")
+        st.button("Generate Embeddings", on_click=handle_embeddings)
          
         st.text("")
         st.button("Delete file and its embeddings", on_click=delete_file_and_embeddings)
-        st.text("")
-        st.text("")
 
+        st.text("")
         if len(st.session_state['data_files']) > 1:
             st.button("Delete all files (with their embeddings)", type="secondary", on_click=delete_all_files_and_embeddings, args=None, kwargs=None)
 
