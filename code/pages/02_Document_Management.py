@@ -5,6 +5,7 @@ from utilities.helper import LLMHelper
 import streamlit.components.v1 as components
 from urllib import parse
 import requests
+import json
 
 def delete_embeddings_of_file(file_to_delete):
     # Query RediSearch to get all the embeddings - lazy loading
@@ -69,14 +70,42 @@ def handle_embeddings():
 
     filename = os.path.splitext(filename)[0] + '.txt'
 
-    response = requests.get(f"https://formlokiml-search.search.windows.net/indexes/embeddings/docs?api-version=2023-07-01-Preview&search={filename}")
+    response = requests.get(f"https://lokimltester-search.search.windows.net/indexes/embeddings/docs?api-version=2023-07-01-Preview&search={filename}")
     
     if response.status_code == 200:
-        st.session_state['json_data'] = response.content
+        with open(f"{os.path.splitext(filename)[0]}.json", "w") as json_file:
+            json.dump(response.json(), json_file)
     else:
        st.session_state['json_data'] = 'UnAuthorized'
 
     st.write(f"{st.session_state['json_data']}")
+
+def handleDelete():
+    print('Delete Run...')
+
+    filename = st.session_state['file_and_embeddings_to_drop']
+
+    filename = os.path.splitext(filename)[0] + '.json'
+
+    os.remove(filename)
+
+def handleText():
+    filename = st.session_state['file_and_embeddings_to_drop']
+
+    if filename != '' and len(st.session_state['data_files']) > 0:
+        file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
+
+        # download_filename = file_dict["converted_filename"] + ".txt"
+
+        fileLink = f"https://{account_name}.blob.core.windows.net/{container_name}/converted/{file_dict['converted_filename']}"
+
+        response = requests.get(fileLink)
+
+        if response.status_code == 200:
+            st.text("")
+            st.download_button(label='Download Text File',  file_name=f"{file_dict['converted_filename']}", data=response.content)
+        else:
+            print(response.status_code)
 
 try:
     # Set page layout to wide screen and menu item
@@ -120,19 +149,9 @@ try:
 
         filenames_list = [d['filename'] for d in st.session_state['data_files']]
         st.selectbox("Select File", filenames_list, key="file_and_embeddings_to_drop")
-
-        filename = st.session_state['file_and_embeddings_to_drop']
-
-        if filename != '' and len(st.session_state['data_files']) > 0:
-            file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
-
-            download_filename = file_dict["converted_filename"] + ".txt"
-
-            response = requests.get(f"https://{account_name}.blob.core.windows.net/{container_name}/converted/{file_dict['converted_filename']}")
-
-            if response.status_code == 200:
-                st.text("")
-                st.download_button(label='Download Text File', file_name=f"{file_dict['converted_filename']}", data=response.content)
+        
+        st.text("")
+        st.button("Generate Text File", on_click=handleText)
         
         st.text("")
         st.button("Generate Embeddings", on_click=handle_embeddings)

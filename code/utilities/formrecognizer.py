@@ -86,6 +86,4 @@ class AzureFormRecognizerClient:
         #             previous_cell_row += 1
         #     results[output_file_id] += f"{tablecontent}|"
 
-        print('results ----> ', results)
-
         return results
