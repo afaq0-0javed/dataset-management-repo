@@ -7,7 +7,6 @@ azure-ai-formrecognizer==3.2.0
 azure-common==1.1.28
 azure-core==1.29.5
 azure-functions==1.17.0
-azure-search-documents==11.4.0a20230509004
 azure-storage-blob==12.14.1
 azure-storage-queue==12.5.0
 beautifulsoup4==4.12.0
@@ -107,3 +106,5 @@ urllib3==1.26.18
 validators==0.22.0
 yarl==1.9.2
 zipp==3.17.0
+--extra-index-url https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple/
+azure-search-documents==11.4.0a20230509004
