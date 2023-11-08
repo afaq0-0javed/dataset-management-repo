@@ -7,6 +7,7 @@ import fitz
 import pytesseract
 from PIL import Image
 from io import BytesIO
+import streamlit as st
 
 class AzureFormRecognizerClient:
     def __init__(self, form_recognizer_endpoint: str = None, form_recognizer_key: str = None):
@@ -49,11 +50,12 @@ class AzureFormRecognizerClient:
                     results.append(page_text)
 
                 pdf_document.close()
-                
+
             else:
                 print(f"Failed to fetch PDF from URL. Status code: {response.status_code}")
 
         except Exception as e:
+            st.write(f"{str(e)}")
             print(f"An error occurred: {str(e)}")
 
         return results
