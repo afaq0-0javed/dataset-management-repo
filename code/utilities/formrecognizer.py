@@ -1,5 +1,5 @@
-from azure.core.credentials import AzureKeyCredential
-from azure.ai.formrecognizer import DocumentAnalysisClient
+# from azure.core.credentials import AzureKeyCredential
+# from azure.ai.formrecognizer import DocumentAnalysisClient
 import os
 from dotenv import load_dotenv
 import requests
@@ -38,61 +38,22 @@ class AzureFormRecognizerClient:
 
                     # Convert the page to an image (you may need to adjust resolution)
                     image = page.get_pixmap()
-                    image.save('page_image.png', 'png')
+                    image_data = image.samples  # Get the image data
+        
+                    # Convert the image data to a PIL Image
+                    pil_image = Image.frombytes("RGB", [image.width, image.height], image_data)
 
                     # Perform OCR on the image
-                    page_text = pytesseract.image_to_string(Image.open('page_image.png'))
+                    page_text = pytesseract.image_to_string(pil_image)
                     
                     results.append(page_text)
 
                 pdf_document.close()
-                os.remove('page_image.png')
-
+                
             else:
                 print(f"Failed to fetch PDF from URL. Status code: {response.status_code}")
 
         except Exception as e:
             print(f"An error occurred: {str(e)}")
-            
-        # return results
-
-        # document_analysis_client = DocumentAnalysisClient(
-        #     endpoint=self.form_recognizer_endpoint, credential=AzureKeyCredential(self.form_recognizer_key)
-        # )
-        
-        # poller = document_analysis_client.begin_analyze_document_from_url(
-        #         "prebuilt-layout", formUrl)
-        # layout = poller.result()
-
-        # results = []
-        # page_result = ''
-        # for p in layout.paragraphs:
-        #     page_number = p.bounding_regions[0].page_number
-        #     output_file_id = int((page_number - 1 ) / self.pages_per_embeddings)
-
-        #     if len(results) < output_file_id + 1:
-        #         results.append('')
-
-        #     if p.role not in self.section_to_exclude:
-        #         results[output_file_id] += f"{p.content}\n"
-
-        # for t in layout.tables:
-        #     page_number = t.bounding_regions[0].page_number
-        #     output_file_id = int((page_number - 1 ) / self.pages_per_embeddings)
-            
-        #     if len(results) < output_file_id + 1:
-        #         results.append('')
-        #     previous_cell_row=0
-        #     rowcontent='| '
-        #     tablecontent = ''
-        #     for c in t.cells:
-        #         if c.row_index == previous_cell_row:
-        #             rowcontent +=  c.content + " | "
-        #         else:
-        #             tablecontent += rowcontent + "\n"
-        #             rowcontent='|'
-        #             rowcontent += c.content + " | "
-        #             previous_cell_row += 1
-        #     results[output_file_id] += f"{tablecontent}|"
 
         return results

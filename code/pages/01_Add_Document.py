@@ -86,8 +86,6 @@ try:
                 llm_helper.blob_client.upsert_blob_metadata(filename, {'converted': 'true', 'embeddings_added': 'true', 'converted_filename': parse.quote(converted_filename)})
                 st.success(f"File {filename} embeddings added to the knowledge base.")
             
-            # pdf_display = f'<iframe src="{st.session_state["file_url"]}" width="700" height="1000" type="application/pdf"></iframe>'
-
     with st.expander("Add text to the knowledge base", expanded=False):
         col1, col2 = st.columns([3,1])
         with col1: 
