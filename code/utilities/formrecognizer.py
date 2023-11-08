@@ -2,8 +2,10 @@ from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
 import os
 from dotenv import load_dotenv
-import PyPDF2
 import requests
+import fitz
+import pytesseract
+from PIL import Image
 from io import BytesIO
 
 class AzureFormRecognizerClient:
@@ -26,18 +28,25 @@ class AzureFormRecognizerClient:
             response = requests.get(formUrl)
 
             if response.status_code == 200:
-                # Create a PDF reader object
-                pdf_bytes = BytesIO(response.content)
-                pdf_reader = PyPDF2.PdfReader(pdf_bytes)
 
-                # Initialize an empty string to store the extracted text
-                text = ""
+                pdf_stream = BytesIO(response.content)
+                
+                pdf_document = fitz.open(stream=pdf_stream)
 
-                # Iterate through each page in the PDF
-                for page_num in range(len(pdf_reader.pages)):
-                    page = pdf_reader.pages[page_num]
-                    text = page.extract_text()
-                    results.append(text)
+                for page_number in range(len(pdf_document)):
+                    page = pdf_document[page_number]
+
+                    # Convert the page to an image (you may need to adjust resolution)
+                    image = page.get_pixmap()
+                    image.save('page_image.png', 'png')
+
+                    # Perform OCR on the image
+                    page_text = pytesseract.image_to_string(Image.open('page_image.png'))
+                    
+                    results.append(page_text)
+
+                pdf_document.close()
+                os.remove('page_image.png')
 
             else:
                 print(f"Failed to fetch PDF from URL. Status code: {response.status_code}")
