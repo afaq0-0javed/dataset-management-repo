@@ -133,7 +133,7 @@
     }
   },
   "variables": {
-    "WebAppImageName": "DOCKER|fruocco/oai-embeddings",
+    "WebAppImageName": "DOCKER|afaqjaved232/oai-webapp:latest",
     "BlobContainerName": "documents",
     "QueueName": "doc-processing",
     "ClientKey": "[concat(uniqueString(guid(resourceGroup().id, deployment().name)), parameters('newGuid'), 'Tg2%')]"
@@ -374,7 +374,7 @@
             "allowedOrigins": ["https://portal.azure.com"]
           },
           "use32BitWorkerProcess": false,
-          "linuxFxVersion": "DOCKER|fruocco/oai-batch:latest",
+          "linuxFxVersion": "DOCKER|afaqjaved232/oai-batch:latest",
           "appCommandLine": "",
           "alwaysOn": true
         },
