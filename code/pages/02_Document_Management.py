@@ -53,6 +53,11 @@ def delete_file_and_embeddings(filename=''):
 
         # delete embeddings
         if file_dict['embeddings_added']:
+            converted_file = 'converted/json/' + os.path.splitext(source_file)[0] + '.json'
+            try:
+                llm_helper.blob_client.delete_file(converted_file)
+            except Exception as e:
+                st.error(f"Error deleting file : {converted_file} - {e}")
             delete_embeddings_of_file(parse.quote(filename))
     
     # update the list of filenames to remove the deleted filename
@@ -68,20 +73,22 @@ def handle_embeddings():
 
     filename = st.session_state['file_and_embeddings_to_drop']
 
-    filename = os.path.splitext(filename)[0] + '.txt'
+    if filename != '' and len(st.session_state['data_files']) > 0:
+        file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
 
-    response = requests.get(f"https://lokimltester-search.search.windows.net/indexes/embeddings/docs?api-version=2023-07-01-Preview&search={filename}")
-    
-    if response.status_code == 200:
-        with open(f"{os.path.splitext(filename)[0]}.json", "w") as json_file:
-            json.dump(response.json(), json_file)
-    else:
-       st.session_state['json_data'] = 'UnAuthorized'
+        download_filename = os.path.splitext(file_dict["converted_filename"])[0] + ".json"
 
-    st.write(f"{st.session_state['json_data']}")
+        fileLink = f"https://{account_name}.blob.core.windows.net/{container_name}/converted/json/{download_filename}"
+
+        response = requests.get(fileLink)
+
+        if response.status_code == 200:
+            st.text("")
+            st.download_button(label='Download Json File',  file_name=f"{download_filename}", data=response.content)
+        else:
+            print(response.status_code)
 
 def handleDelete():
-    print('Delete Run...')
 
     filename = st.session_state['file_and_embeddings_to_drop']
 
@@ -94,8 +101,6 @@ def handleText():
 
     if filename != '' and len(st.session_state['data_files']) > 0:
         file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
-
-        # download_filename = file_dict["converted_filename"] + ".txt"
 
         fileLink = f"https://{account_name}.blob.core.windows.net/{container_name}/converted/{file_dict['converted_filename']}"
 

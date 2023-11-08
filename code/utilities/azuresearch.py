@@ -178,13 +178,13 @@ class AzureSearch(VectorStore):
                 # Check if all documents were successfully uploaded
                 if not all([r.succeeded for r in response]):
                     raise Exception(response)
-                # Reset data
-                data = []
+                # # Reset data
+                # data = []
         # Upload data to index
         response = self.client.upload_documents(documents=data)
         # Check if all documents were successfully uploaded
         if all([r.succeeded for r in response]):
-            return ids
+            return data
         else:
             raise Exception(response)
 

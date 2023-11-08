@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import logging
 import re
 import hashlib
+import json
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import AzureOpenAI
@@ -28,11 +29,13 @@ from utilities.translator import AzureTranslatorClient
 from utilities.customprompt import PROMPT
 from utilities.redis import RedisExtended
 from utilities.azuresearch import AzureSearch
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
 import urllib
 
 from fake_useragent import UserAgent
+
 
 class LLMHelper:
     def __init__(self,
@@ -61,8 +64,8 @@ class LLMHelper:
         self.api_version = openai.api_version
         self.index_name: str = "embeddings"
         self.model: str = os.getenv('OPENAI_EMBEDDINGS_ENGINE_DOC', "text-embedding-ada-002")
-        self.deployment_name: str = os.getenv("OPENAI_ENGINE", os.getenv("OPENAI_ENGINES", "text-davinci-003"))
-        self.deployment_type: str = os.getenv("OPENAI_DEPLOYMENT_TYPE", "Text")
+        self.deployment_name: str = os.getenv("OPENAI_ENGINE", os.getenv("OPENAI_ENGINES", "gpt-35-turbo"))
+        self.deployment_type: str = os.getenv("OPENAI_DEPLOYMENT_TYPE", "Chat")
         self.temperature: float = float(os.getenv("OPENAI_TEMPERATURE", 0.7)) if temperature is None else temperature
         self.max_tokens: int = int(os.getenv("OPENAI_MAX_TOKENS", -1)) if max_tokens is None else max_tokens
         self.prompt = PROMPT if custom_prompt == '' else PromptTemplate(template=custom_prompt, input_variables=["summaries", "question"])
@@ -108,6 +111,15 @@ class LLMHelper:
         self.user_agent: UserAgent() = UserAgent()
         self.user_agent.random
 
+    # def before_retry_sleep(retry_state):
+    #     print("Rate limited on the OpenAI embeddings API, sleeping before retrying...")
+
+
+    # @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(15), before_sleep=before_retry_sleep)
+    # def compute_embedding(text):
+    #     return openai.Embedding.create(engine='text-embedding-ada-002', input=text)
+
+
     def add_embeddings_lc(self, source_url):
         try:
             documents = self.document_loaders(source_url).load()
@@ -138,9 +150,16 @@ class LLMHelper:
                 hash_key = hashlib.sha1(f"{source_url}_{i}".encode('utf-8')).hexdigest()
                 hash_key = f"doc:{self.index_name}:{hash_key}"
                 keys.append(hash_key)
-                doc.metadata = {"source": f"[{source_url}]({source_url}_SAS_TOKEN_PLACEHOLDER_)" , "chunk": i, "key": hash_key, "filename": filename}
+                doc.metadata = {"source": f"[{source_url}]({source_url}_SAS_TOKEN_PLACEHOLDER_)" , "chunk": i, "key": hash_key, "filename": filename}    
+
             if self.vector_store_type == 'AzureSearch':
-                self.vector_store.add_documents(documents=docs, keys=keys)
+                data = self.vector_store.add_documents(documents=docs, keys=keys)
+                
+                jsonData = json.dumps(data)
+
+                filename = f"{os.path.splitext('/'.join(source_url.split('/')[5:]))[0]}.json"
+
+                self.blob_client.upload_file(jsonData, f"converted/json/{filename}", content_type='application/json')
             else:
                 self.vector_store.add_documents(documents=docs, redis_url=self.vector_store_full_address,  index_name=self.index_name, keys=keys)
             
@@ -173,6 +192,7 @@ class LLMHelper:
 
     def get_all_documents(self, k: int = None):
         result = self.vector_store.similarity_search(query="*", k= k if k else self.k)
+
         dataFrame = pd.DataFrame(list(map(lambda x: {
                 'key': x.metadata['key'],
                 'filename': x.metadata['filename'],

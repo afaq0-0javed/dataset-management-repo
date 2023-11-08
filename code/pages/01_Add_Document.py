@@ -80,7 +80,7 @@ try:
                     llm_helper.add_embeddings_lc(st.session_state['file_url'])
 
                 else:
-                    # Get OCR with Layout API and then add embeddigns
+                    # Get OCR with Layout API and then add embeddings
                     converted_filename = llm_helper.convert_file_and_add_embeddings(st.session_state['file_url'], st.session_state['filename'], st.session_state['translate'])
                 
                 llm_helper.blob_client.upsert_blob_metadata(filename, {'converted': 'true', 'embeddings_added': 'true', 'converted_filename': parse.quote(converted_filename)})
