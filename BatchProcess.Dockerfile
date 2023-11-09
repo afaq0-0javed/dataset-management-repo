@@ -7,5 +7,6 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 
 COPY ./code/requirements.txt /
 RUN pip install -r /requirements.txt
+RUN pip install tesseract
 
 COPY ./code /home/site/wwwroot
