@@ -6,7 +6,11 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 COPY ./code/requirements.txt /
+RUN apt-get update \
+    && apt-get -y install pytesseract \
+RUN apt-get update \
+    && apt-get -y install tesseract-ocr \ # required for pytesseract
+    
 RUN pip install -r /requirements.txt
-RUN pip install tesseract
 
 COPY ./code /home/site/wwwroot
