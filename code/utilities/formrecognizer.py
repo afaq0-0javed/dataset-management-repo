@@ -8,6 +8,8 @@ import pytesseract
 from PIL import Image
 from io import BytesIO
 import streamlit as st
+import threading
+import math
 
 class AzureFormRecognizerClient:
     def __init__(self, form_recognizer_endpoint: str = None, form_recognizer_key: str = None):
