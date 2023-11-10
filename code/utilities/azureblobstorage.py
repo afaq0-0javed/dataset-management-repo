@@ -42,7 +42,6 @@ class AzureBlobStorageClient:
                     "converted": blob.metadata.get('converted', 'false') == 'true' if blob.metadata else False,
                     "embeddings_added": blob.metadata.get('embeddings_added', 'false') == 'true' if blob.metadata else False,
                     "fullpath": f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob.name}?{sas}",
-                    "converted_filename": f"{blob.metadata.get('converted_filename', '').split('/')[1]}",
                     })
             else:
                 converted_files[blob.name] = f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob.name}?{sas}"
@@ -62,7 +61,7 @@ class AzureBlobStorageClient:
         # Update metadata
         blob_metadata.update(metadata)
         # Add metadata to the blob
-        blob_client.set_blob_metadata(metadata= blob_metadata)
+        blob_client.set_blob_metadata(metadata= blob_metadata,)
 
     def get_container_sas(self):
         # Generate a SAS URL to the container and return it

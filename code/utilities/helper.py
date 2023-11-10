@@ -179,8 +179,8 @@ class LLMHelper:
         converted_text = re.sub(pattern, '', "\n".join(converted_text))
 
         # Upload the text to Azure Blob Storage
-        converted_filename = f"converted/{os.path.splitext(filename)[0]}.txt"
-        source_url = self.blob_client.upload_file(converted_text, f"converted/{os.path.splitext(filename)[0]}.txt", content_type='text/plain; charset=utf-8')
+        converted_filename = f"converted/{os.path.splitext(filename)[0].replace(' ', '_')}.txt"
+        source_url = self.blob_client.upload_file(converted_text, converted_filename, content_type='text/plain; charset=utf-8')
 
         print(f"Converted file uploaded to {source_url} with filename {filename}")
         # Update the metadata to indicate that the file has been converted

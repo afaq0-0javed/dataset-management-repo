@@ -45,7 +45,7 @@ def delete_file_and_embeddings(filename=''):
 
         # delete converted file
         if file_dict['converted']:
-            converted_file = 'converted/' + os.path.splitext(source_file)[0] + '.txt'
+            converted_file = 'converted/' + os.path.splitext(source_file)[0].replace(' ', '_') + '.txt'
             try:
                 llm_helper.blob_client.delete_file(converted_file)
             except Exception as e:
@@ -53,7 +53,7 @@ def delete_file_and_embeddings(filename=''):
 
         # delete embeddings
         if file_dict['embeddings_added']:
-            converted_file = 'converted/json/' + os.path.splitext(source_file)[0] + '.json'
+            converted_file = 'converted/json/' + os.path.splitext(source_file)[0].replace(' ', '_') + '.json'
             try:
                 llm_helper.blob_client.delete_file(converted_file)
             except Exception as e:
@@ -76,9 +76,11 @@ def handle_embeddings():
     if filename != '' and len(st.session_state['data_files']) > 0:
         file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
 
-        download_filename = os.path.splitext(file_dict["converted_filename"])[0] + ".json"
+        download_filename = os.path.splitext(file_dict["filename"])[0].replace(' ', '_') + ".json"
 
         fileLink = f"https://{account_name}.blob.core.windows.net/{container_name}/converted/json/{download_filename}"
+
+        print('fileLink --->', fileLink)
 
         response = requests.get(fileLink)
 
@@ -100,17 +102,30 @@ def handleText():
     filename = st.session_state['file_and_embeddings_to_drop']
 
     if filename != '' and len(st.session_state['data_files']) > 0:
+
         file_dict = next((d for d in st.session_state['data_files'] if d['filename'] == filename), None)
 
-        fileLink = f"https://{account_name}.blob.core.windows.net/{container_name}/converted/{file_dict['converted_filename']}"
+        converted_filename = os.path.splitext(file_dict['filename'])[0].replace(' ', '_') + '.txt'
+
+        fileLink = f"https://{account_name}.blob.core.windows.net/{container_name}/converted/{converted_filename}"
 
         response = requests.get(fileLink)
 
         if response.status_code == 200:
             st.text("")
-            st.download_button(label='Download Text File',  file_name=f"{file_dict['converted_filename']}", data=response.content)
+            st.download_button(label='Download Text File',  file_name=f"{converted_filename}", data=response.content)
         else:
             print(response.status_code)
+
+def process_all_files():
+    
+    for file in st.session_state['data_files']:
+        if not file['converted']:
+            converted_filename = llm_helper.convert_file_and_add_embeddings(file['fullpath'], file['filename'], False)
+
+            llm_helper.blob_client.upsert_blob_metadata(file['filename'], {'converted': 'true', 'embeddings_added': 'true', 'converted_filename': parse.quote(converted_filename)})
+            st.success(f"File {file['filename']} embeddings added to the knowledge base.")
+
 
 try:
     # Set page layout to wide screen and menu item
@@ -154,13 +169,16 @@ try:
 
         filenames_list = [d['filename'] for d in st.session_state['data_files']]
         st.selectbox("Select File", filenames_list, key="file_and_embeddings_to_drop")
+
+        st.text("")
+        st.button("Process all files", on_click=process_all_files)
         
         st.text("")
         st.button("Generate Text File", on_click=handleText)
         
         st.text("")
         st.button("Generate Embeddings", on_click=handle_embeddings)
-         
+        
         st.text("")
         st.button("Delete file and its embeddings", on_click=delete_file_and_embeddings)
 
