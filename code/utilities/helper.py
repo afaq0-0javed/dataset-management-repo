@@ -5,6 +5,7 @@ import logging
 import re
 import hashlib
 import json
+import streamlit as st
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import AzureOpenAI
@@ -155,11 +156,40 @@ class LLMHelper:
             if self.vector_store_type == 'AzureSearch':
                 data = self.vector_store.add_documents(documents=docs, keys=keys)
                 
-                jsonData = json.dumps(data)
+                # jsonData = json.dumps(data)
 
-                filename = f"{os.path.splitext('/'.join(source_url.split('/')[5:]))[0]}.json"
+                # filename = f"{os.path.splitext('/'.join(source_url.split('/')[5:]))[0]}.json"
 
-                self.blob_client.upload_file(jsonData, f"converted/json/{filename}", content_type='application/json')
+                # print('filename ---->', filename)
+                is_empty = os.stat('embeddings_data.json').st_size == 0
+
+                with open('embeddings_data.json', 'a+') as json_file:
+                    if not is_empty:
+                        json_file.seek(json_file.tell() - 1, 0)
+                        json_file.truncate()
+                        json_file.write(',')
+                        json_file.write('\n')
+                        arr_size = len(data)
+                        for emb_data in data:
+                            json_file.write(json.dumps(emb_data))
+                            if arr_size > 0:
+                                json_file.write(',')
+                                arr_size-=arr_size
+                            else:
+                                arr_size-=arr_size
+                        json_file.write(']')
+                    else:
+                        json_file.write('[')
+                        arr_size = len(data)
+                        for emb_data in data:
+                            json_file.write(json.dumps(emb_data))
+                            if arr_size > 0:
+                                json_file.write(',')
+                                arr_size-=arr_size
+                            else:
+                                arr_size-=arr_size
+                        json_file.write(']')
+                # self.blob_client.upload_file(jsonData, f"converted/json/{filename}", content_type='application/json')
             else:
                 self.vector_store.add_documents(documents=docs, redis_url=self.vector_store_full_address,  index_name=self.index_name, keys=keys)
             
@@ -169,7 +199,9 @@ class LLMHelper:
 
     def convert_file_and_add_embeddings(self, source_url, filename, enable_translation=False):
         # Extract the text from the file
-        text = self.pdf_parser.analyze_read(source_url)
+        st.warning(f'Downloading {filename}')
+        
+        text = self.pdf_parser.analyze_read(source_url, filename)
 
         # Translate if requested
         converted_text = list(map(lambda x: self.translator.translate(x), text)) if self.enable_translation else text
@@ -182,10 +214,11 @@ class LLMHelper:
         converted_filename = f"converted/{os.path.splitext(filename)[0].replace(' ', '_')}.txt"
         source_url = self.blob_client.upload_file(converted_text, converted_filename, content_type='text/plain; charset=utf-8')
 
-        print(f"Converted file uploaded to {source_url} with filename {filename}")
+        st.warning(f"Converted file uploaded to azure with filename {converted_filename}")
         # Update the metadata to indicate that the file has been converted
         self.blob_client.upsert_blob_metadata(filename, {"converted": "true"})
 
+        st.warning(f"Generating Embeddings for {converted_filename}")
         self.add_embeddings_lc(source_url=source_url)
 
         return converted_filename

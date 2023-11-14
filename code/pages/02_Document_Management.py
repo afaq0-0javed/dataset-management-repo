@@ -126,7 +126,6 @@ def process_all_files():
             llm_helper.blob_client.upsert_blob_metadata(file['filename'], {'converted': 'true', 'embeddings_added': 'true', 'converted_filename': parse.quote(converted_filename)})
             st.success(f"File {file['filename']} embeddings added to the knowledge base.")
 
-
 try:
     # Set page layout to wide screen and menu item
     menu_items = {

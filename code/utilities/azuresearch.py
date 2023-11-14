@@ -171,22 +171,24 @@ class AzureSearch(VectorStore):
                 ).tolist(),
                 FIELDS_METADATA: json.dumps(metadata)
             })
-            ids.append(key)
+
+        return data
+            # ids.append(key)
             # Upload data in batches
-            if len(data) == MAX_UPLOAD_BATCH_SIZE:
-                response = self.client.upload_documents(documents=data)
-                # Check if all documents were successfully uploaded
-                if not all([r.succeeded for r in response]):
-                    raise Exception(response)
-                # # Reset data
-                # data = []
+            # if len(data) == MAX_UPLOAD_BATCH_SIZE:
+            #     response = self.client.upload_documents(documents=data)
+            #     # Check if all documents were successfully uploaded
+            #     if not all([r.succeeded for r in response]):
+            #         raise Exception(response)
+            #     # # Reset data
+            #     # data = []
         # Upload data to index
-        response = self.client.upload_documents(documents=data)
+        # response = self.client.upload_documents(documents=data)
         # Check if all documents were successfully uploaded
-        if all([r.succeeded for r in response]):
-            return data
-        else:
-            raise Exception(response)
+        # if all([r.succeeded for r in response]):
+        #     return data
+        # else:
+        #     raise Exception(response)
 
     def similarity_search(
         self, query: str, k: int = 4, **kwargs: Any

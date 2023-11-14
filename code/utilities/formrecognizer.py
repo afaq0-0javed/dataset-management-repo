@@ -56,15 +56,17 @@ class AzureFormRecognizerClient:
             "pages": results
         }
 
-    def analyze_read(self, formUrl):
+    def analyze_read(self, formUrl, filename):
 
         text_file = []
 
         try:
             # Fetch the PDF file from the URL
-            response = requests.get(formUrl)
+            response = requests.get(formUrl)   
             
             if response.status_code == 200:
+
+                st.warning(f'Generating Text File of {filename}')
                 
                 threads = []
 
