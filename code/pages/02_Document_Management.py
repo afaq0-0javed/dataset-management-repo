@@ -53,11 +53,11 @@ def delete_file_and_embeddings(filename=''):
 
         # delete embeddings
         if file_dict['embeddings_added']:
-            converted_file = 'converted/json/' + os.path.splitext(source_file)[0].replace(' ', '_') + '.json'
-            try:
-                llm_helper.blob_client.delete_file(converted_file)
-            except Exception as e:
-                st.error(f"Error deleting file : {converted_file} - {e}")
+            # converted_file = 'converted/json/' + os.path.splitext(source_file)[0].replace(' ', '_') + '.json'
+            # try:
+            #     llm_helper.blob_client.delete_file(converted_file)
+            # except Exception as e:
+            #     st.error(f"Error deleting file : {converted_file} - {e}")
             delete_embeddings_of_file(parse.quote(filename))
     
     # update the list of filenames to remove the deleted filename
