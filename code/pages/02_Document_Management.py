@@ -175,8 +175,8 @@ try:
         st.text("")
         st.button("Generate Text File", on_click=handleText)
         
-        st.text("")
-        st.button("Generate Embeddings", on_click=handle_embeddings)
+        # st.text("")
+        # st.button("Generate Embeddings", on_click=handle_embeddings)
         
         st.text("")
         st.button("Delete file and its embeddings", on_click=delete_file_and_embeddings)
